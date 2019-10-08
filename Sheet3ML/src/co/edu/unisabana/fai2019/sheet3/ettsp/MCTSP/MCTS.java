@@ -1,5 +1,6 @@
 package co.edu.unisabana.fai2019.sheet3.ettsp.MCTSP;
 
+import ai.libs.jaicore.problems.enhancedttsp.EnhancedTTSP;
 import co.edu.unisabana.fai2019.sheet3.ettsp.ATSPSolver;
 import it.unimi.dsi.fastutil.shorts.ShortList;
 import java.util.ArrayList;
@@ -32,7 +33,8 @@ public class MCTS extends ATSPSolver {
     private ExecutorService threadpool;
     private ArrayList<FutureTask<Node>> futures;
 
-    public MCTS() {
+    public MCTS(EnhancedTTSP problem) {
+        super(problem);
         random = new Random();
     }
 
