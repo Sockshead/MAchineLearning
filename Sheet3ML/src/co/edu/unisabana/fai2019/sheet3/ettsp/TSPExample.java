@@ -1,5 +1,6 @@
 package co.edu.unisabana.fai2019.sheet3.ettsp;
 
+import Annealing.Anneal;
 import java.util.Random;
 
 import ai.libs.jaicore.problems.enhancedttsp.EnhancedTTSP;
@@ -32,8 +33,8 @@ public class TSPExample {
 		System.out.println(cost);
 		
 		/* now use a solver to create a solution */
-		ATSPSolver solver = new RandomTSPSolver(problemInstance, new Random(0));
-		ShortList solution = solver.solve(0);
+		ATSPSolver solver = new Anneal(problemInstance);
+		ShortList solution = solver.solve(100000);
 		double costOfComputedSolution = se.evalSolution(solution);
 		System.out.println(costOfComputedSolution);
 		System.out.println("Number of evaluations: " + solver.solutionEvaluator.getNumberOfConductedEvaluations());

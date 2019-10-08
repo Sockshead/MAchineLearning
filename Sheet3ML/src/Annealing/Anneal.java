@@ -2,68 +2,91 @@ package Annealing;
 
 import ai.libs.jaicore.problems.enhancedttsp.EnhancedTTSP;
 import co.edu.unisabana.fai2019.sheet3.ettsp.ATSPSolver;
+import it.unimi.dsi.fastutil.shorts.ShortArrayList;
 import it.unimi.dsi.fastutil.shorts.ShortList;
 import java.lang.Math;
 import static java.lang.Math.random;
 import static java.lang.StrictMath.random;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
 
 public class Anneal extends ATSPSolver {
 
     public Anneal(EnhancedTTSP problem) {
         super(problem);
+        //solutionEvaluator.evalSolution(sol);
     }
 
     @Override
     public ShortList solve(int maxEvaluations) {
-        int iteration = -1;
+        int t = 0;
 
-        ArrayList<Integer> currentOrder = new ArrayList<Integer>();
-        ArrayList<Integer> nextOrder = new ArrayList<Integer>();
-        double temperature = 10000.0;
-        double deltaDistance = 0;
-        double coolingRate = 0.9999;
-        double absoluteTemperature = 0.00001;
+        /* compute initial solution */
+        ShortList currentOrder = new ShortArrayList();
+        int n = problem.getLocations().size() - 1;
+        for (int i = 1; i <= n; i++) {
+            currentOrder.add((short) i);
+        }
+        //System.out.println(currentOrder);
+        Collections.shuffle(currentOrder);
+        //System.out.println(currentOrder);
+        currentOrder.add((short) 0);
+        double fCurr = solutionEvaluator.evalSolution(currentOrder);
 
-        double distance = GetTotalDistance(currentOrder);
+        ShortList bestOrder = new ShortArrayList(currentOrder);
+        double fBest = fCurr;
 
-        while (temperature > absoluteTemperature) {
-            nextOrder = GetNextArrangement(currentOrder);
-
-            deltaDistance = GetTotalDistance(nextOrder) - distance;
-
-            //if the new order has a smaller distance
-            //or if the new order has a larger distance but 
-            //satisfies Boltzman condition then accept the arrangement
-            if ((deltaDistance < 0) || (distance > 0
-                    && Math.exp(-deltaDistance / temperature) > random.NextDouble())) {
-                for (int i = 0; i < nextOrder.size(); i++) {
-                    currentOrder.set(i, nextOrder.get(i));
+        while (maxEvaluations != 0) {
+            int At = this.getA(t);
+            int Tt = this.getT(t);
+            for (int i = 0; i < At; i++) {
+                ShortList next = this.GetNextArrangement(currentOrder);
+                //System.out.println(next);
+                double fNext = solutionEvaluator.evalSolution(next);
+                double prob = Math.exp(-Math.max(fNext - fCurr, 0) / Tt);
+                Random r = new Random();
+                double nextD = r.nextDouble();
+                if (nextD < prob) {
+                    currentOrder = next;
+                    fCurr = fNext;
                 }
-
-                distance = deltaDistance + distance;
+                if (fCurr < fBest) {
+                    bestOrder = currentOrder;
+                    fBest = fCurr;
+                }
+                maxEvaluations = maxEvaluations - 1;
+                if (maxEvaluations == 0) {
+                    return bestOrder;
+                }
             }
+            t = t + 1;
+        }
+        return bestOrder;
+    }
 
-            //cool down the temperature
-            temperature *= coolingRate;
-
-            iteration++;
+    private ShortList GetNextArrangement(ShortList currentOrder) {
+        Random r = new Random();
+        int index1 = r.nextInt(currentOrder.size() - 1);
+        int index2 = r.nextInt(currentOrder.size() - 1);
+        while (index1 == index2) {
+            index2 = r.nextInt(currentOrder.size() - 1);
         }
 
-        shortestDistance(distance);
-        return null;
+        short i1 = currentOrder.getShort(index1);
+        short i2 = currentOrder.getShort(index2);
+        ShortList l = new ShortArrayList();
+        l.addAll(currentOrder);
+        l.set(index1, i2);
+        l.set(index2, i1);
+        return l;
     }
 
-    public double shortestDistance(double dist) {
-        double shortestDistance = dist;
-        return shortestDistance;
+    private int getA(int t) {
+        return 7;
     }
 
-    private double GetTotalDistance(ArrayList<Integer> currentOrder) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    private ArrayList<Integer> GetNextArrangement(ArrayList<Integer> currentOrder) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    private int getT(int t) {
+        return 4;
     }
 }
